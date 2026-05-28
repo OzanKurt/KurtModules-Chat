@@ -1,0 +1,50 @@
+{
+  "name": "ozankurt/laravel-modules-chat",
+  "description": "Real-time chat for Laravel: rooms, DMs, threads, presence, reactions, attachments, mentions.",
+  "keywords": ["laravel", "filament", "kurtmodules", "chat", "messaging", "reverb"],
+  "license": "MIT",
+  "authors": [{ "name": "Ozan Kurt", "email": "ozankurt2@gmail.com" }],
+  "require": {
+    "php": "^8.4",
+    "illuminate/broadcasting": "^12.0 || ^13.0",
+    "illuminate/contracts": "^12.0 || ^13.0",
+    "illuminate/database": "^12.0 || ^13.0",
+    "illuminate/support": "^12.0 || ^13.0",
+    "ozankurt/laravel-modules-core": "^2.0",
+    "spatie/laravel-medialibrary": "^11.0",
+    "spatie/laravel-package-tools": "^1.92"
+  },
+  "require-dev": {
+    "filament/filament": "^3.0 || ^4.0 || ^5.0",
+    "larastan/larastan": "^3.0",
+    "laravel/pint": "^1.18",
+    "laravel/reverb": "^1.0",
+    "orchestra/testbench": "^10.0",
+    "pestphp/pest": "^3.0",
+    "pestphp/pest-plugin-laravel": "^3.0",
+    "rector/rector": "^2.0"
+  },
+  "suggest": {
+    "laravel/reverb": "First-party WebSocket server for Laravel; recommended Chat transport."
+  },
+  "autoload": { "psr-4": { "Kurt\\Modules\\Chat\\": "src/" } },
+  "autoload-dev": {
+    "psr-4": {
+      "Kurt\\Modules\\Chat\\Tests\\": "tests/",
+      "Database\\Factories\\Kurt\\Modules\\Chat\\": "database/factories/"
+    }
+  },
+  "extra": { "laravel": { "providers": ["Kurt\\Modules\\Chat\\Providers\\ChatServiceProvider"] } },
+  "repositories": [
+    { "type": "vcs", "url": "https://github.com/OzanKurt/KurtModules-Core" }
+  ],
+  "config": { "sort-packages": true, "allow-plugins": { "pestphp/pest-plugin": true } },
+  "scripts": {
+    "test": "vendor/bin/pest",
+    "lint": "vendor/bin/pint --test",
+    "format": "vendor/bin/pint",
+    "stan": "vendor/bin/phpstan analyse --memory-limit=2G"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
