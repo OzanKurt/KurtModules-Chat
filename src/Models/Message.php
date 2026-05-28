@@ -23,6 +23,8 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property int $user_id
  * @property int|null $parent_id
  * @property string $body
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  * @property Carbon|null $edited_at
  * @property Conversation $conversation
  * @property Message|null $parent

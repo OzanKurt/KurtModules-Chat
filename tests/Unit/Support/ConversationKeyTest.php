@@ -9,6 +9,8 @@ final class StubKeyUser extends Model
 {
     protected $table = 'stub_users';
 
+    protected $guarded = [];
+
     public $timestamps = false;
 
     public function getKey(): mixed
