@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -24,32 +25,33 @@ return new class extends Migration
             $table->json('data')->nullable()->after('body');
         });
 
-        // SQLite is dynamically typed and doesn't support ALTER COLUMN; skip the
-        // nullability change there since storing NULL works without a schema change.
-        if (! in_array(Schema::getConnection()->getDriverName(), ['sqlite'], true)) {
-            Schema::table('chat_messages', function (Blueprint $table): void {
-                $table->dropForeign(['user_id']);
-                $table->unsignedBigInteger('user_id')->nullable()->change();
-                $table->foreign('user_id')
-                    ->references('id')
-                    ->on(config('auth.providers.users.table', 'users'))
-                    ->nullOnDelete();
-            });
-        }
+        // Allow author-less system messages. Laravel 12+ supports SQLite column
+        // modifications natively via temp-table rebuild, so a driver guard is no
+        // longer required.
+        Schema::table('chat_messages', function (Blueprint $table): void {
+            $table->dropForeign(['user_id']);
+            $table->unsignedBigInteger('user_id')->nullable()->change();
+            $table->foreign('user_id')
+                ->references('id')
+                ->on(config('auth.providers.users.table', 'users'))
+                ->nullOnDelete();
+        });
     }
 
     public function down(): void
     {
-        if (! in_array(Schema::getConnection()->getDriverName(), ['sqlite'], true)) {
-            Schema::table('chat_messages', function (Blueprint $table): void {
-                $table->dropForeign(['user_id']);
-                $table->unsignedBigInteger('user_id')->nullable(false)->change();
-                $table->foreign('user_id')
-                    ->references('id')
-                    ->on(config('auth.providers.users.table', 'users'))
-                    ->cascadeOnDelete();
-            });
-        }
+        // Author-less system messages cannot survive a downgrade — drop them
+        // before re-enforcing the NOT NULL constraint on user_id.
+        DB::table('chat_messages')->whereNull('user_id')->delete();
+
+        Schema::table('chat_messages', function (Blueprint $table): void {
+            $table->dropForeign(['user_id']);
+            $table->unsignedBigInteger('user_id')->nullable(false)->change();
+            $table->foreign('user_id')
+                ->references('id')
+                ->on(config('auth.providers.users.table', 'users'))
+                ->cascadeOnDelete();
+        });
 
         Schema::table('chat_messages', function (Blueprint $table): void {
             $table->dropColumn(['type', 'data']);

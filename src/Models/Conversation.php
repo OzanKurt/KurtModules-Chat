@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Kurt\Modules\Chat\Enums\ConversationType;
 use Kurt\Modules\Chat\Enums\ConversationVisibility;
+use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Chat\Enums\ParticipantNotifications;
 use Kurt\Modules\Chat\Enums\ParticipantRole;
 use Kurt\Modules\Chat\Events\MessageSent;
@@ -27,6 +28,7 @@ use Kurt\Modules\Core\Concerns\ResolvesUser;
  * @property ConversationType $type
  * @property string|null $name
  * @property string|null $description
+ * @property array<string, mixed>|null $data
  * @property string|null $dm_key
  * @property ConversationVisibility $visibility
  * @property int $created_by
@@ -50,6 +52,7 @@ class Conversation extends Model
         'type',
         'name',
         'description',
+        'data',
         'dm_key',
         'visibility',
         'created_by',
@@ -61,6 +64,7 @@ class Conversation extends Model
         'type' => ConversationType::class,
         'visibility' => ConversationVisibility::class,
         'last_message_at' => 'datetime',
+        'data' => 'array',
     ];
 
     /**
@@ -180,11 +184,55 @@ class Conversation extends Model
 
         $this->forceFill(['last_message_at' => now()])->save();
 
+        if ((bool) config('chat.auto_unarchive_on_new_message', true)) {
+            $this->participants()
+                ->where('user_id', '!=', $author->getKey())
+                ->whereNotNull('archived_at')
+                ->update(['archived_at' => null]);
+        }
+
         /** @var Message $fresh */
         $fresh = $message->fresh(['mentions']) ?? $message;
         MessageSent::dispatch($fresh);
 
         return $message;
+    }
+
+    /**
+     * Create an automated, author-less system message ("X joined", "topic changed", …).
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function systemMessage(string $body, array $data = []): Message
+    {
+        /** @var Message $message */
+        $message = $this->messages()->create([
+            'user_id' => null,
+            'type' => MessageType::System,
+            'body' => $body,
+            'data' => $data,
+        ]);
+
+        $this->forceFill(['last_message_at' => now()])->save();
+
+        /** @var Message $fresh */
+        $fresh = $message->fresh() ?? $message;
+        MessageSent::dispatch($fresh);
+
+        return $message;
+    }
+
+    /**
+     * @return \Illuminate\Contracts\Pagination\CursorPaginator<int, Message>
+     */
+    public function messagesCursor(int $perPage = 50): \Illuminate\Contracts\Pagination\CursorPaginator
+    {
+        /** @var \Illuminate\Contracts\Pagination\CursorPaginator<int, Message> $paginator */
+        $paginator = $this->messages()
+            ->latest('created_at')
+            ->cursorPaginate($perPage);
+
+        return $paginator;
     }
 
     public function markRead(Model $user): void
