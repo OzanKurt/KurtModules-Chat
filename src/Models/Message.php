@@ -13,10 +13,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Crypt;
 use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Core\Concerns\ResolvesUser;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Throwable;
 
 /**
  * @property int $id
@@ -180,6 +182,31 @@ class Message extends Model implements HasMedia
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('chat-attachments');
+    }
+
+    public function getBodyAttribute(?string $value): ?string
+    {
+        if ($value === null || ! (bool) config('chat.encrypt_messages', false)) {
+            return $value;
+        }
+
+        try {
+            return Crypt::decryptString($value);
+        } catch (Throwable) {
+            // Legacy plaintext rows written before encryption was enabled.
+            return $value;
+        }
+    }
+
+    public function setBodyAttribute(?string $value): void
+    {
+        if ($value !== null && (bool) config('chat.encrypt_messages', false)) {
+            $this->attributes['body'] = Crypt::encryptString($value);
+
+            return;
+        }
+
+        $this->attributes['body'] = $value;
     }
 
     /**

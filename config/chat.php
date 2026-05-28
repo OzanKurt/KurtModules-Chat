@@ -18,6 +18,7 @@ return [
     'edit_window_minutes' => 15,
     'message_max_length' => 4000,
     'auto_unarchive_on_new_message' => true,
+    'encrypt_messages' => env('CHAT_ENCRYPT_MESSAGES', false),
     'attachments' => [
         'disk' => env('CHAT_MEDIA_DISK', 'public'),
         'max_size_kb' => 25_000,
