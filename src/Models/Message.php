@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Core\Concerns\ResolvesUser;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -20,9 +21,11 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 /**
  * @property int $id
  * @property int $conversation_id
- * @property int $user_id
+ * @property int|null $user_id
  * @property int|null $parent_id
+ * @property MessageType $type
  * @property string $body
+ * @property array<string, mixed>|null $data
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Carbon|null $edited_at
@@ -31,6 +34,7 @@ use Spatie\MediaLibrary\InteractsWithMedia;
  * @property Collection<int, Message> $replies
  * @property Collection<int, Reaction> $reactions
  * @property Collection<int, Mention> $mentions
+ * @property Collection<int, MessageFlag> $flags
  */
 class Message extends Model implements HasMedia
 {
@@ -48,13 +52,17 @@ class Message extends Model implements HasMedia
         'conversation_id',
         'user_id',
         'parent_id',
+        'type',
         'body',
+        'data',
         'edited_at',
     ];
 
     /** @var array<string, string> */
     protected $casts = [
         'edited_at' => 'datetime',
+        'type' => MessageType::class,
+        'data' => 'array',
     ];
 
     /**
@@ -111,6 +119,43 @@ class Message extends Model implements HasMedia
     public function mentions(): HasMany
     {
         return $this->hasMany(Mention::class);
+    }
+
+    /**
+     * @return HasMany<MessageFlag, $this>
+     */
+    public function flags(): HasMany
+    {
+        return $this->hasMany(MessageFlag::class);
+    }
+
+    public function isSystem(): bool
+    {
+        return $this->type === MessageType::System;
+    }
+
+    public function flag(Model $user): MessageFlag
+    {
+        /** @var MessageFlag $flag */
+        $flag = $this->flags()->firstOrCreate([
+            'user_id' => $user->getKey(),
+        ]);
+
+        return $flag;
+    }
+
+    public function unflag(Model $user): void
+    {
+        $this->flags()
+            ->where('user_id', $user->getKey())
+            ->delete();
+    }
+
+    public function isFlaggedBy(Model $user): bool
+    {
+        return $this->flags()
+            ->where('user_id', $user->getKey())
+            ->exists();
     }
 
     public function reactWith(Model $user, string $emoji): Reaction
