@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-05-28
+
+### Added
+
+- `MessageType` enum with `User` + `System` cases.
+- `chat_messages.type` and `chat_messages.data` columns.
+- `chat_conversations.data` JSON column for arbitrary metadata.
+- `chat_participants.archived_at` and `chat_participants.settings` columns.
+- `Conversation::systemMessage(body, data)` for first-class system events.
+- `Conversation::messagesCursor()` for cursor-based pagination.
+- `Participant::archive()/unarchive()/isArchived()` + `archived()/notArchived()` scopes.
+- `chat_message_flags` table + `Message::flag(user)/unflag(user)/isFlaggedBy(user)`.
+- `ChatParticipant` contract + `IsChatParticipant` trait with relations and unread count helper.
+- Optional `body` encryption via `chat.encrypt_messages` config + `CHAT_ENCRYPT_MESSAGES` env.
+- Auto-unarchive recipient participants on new message via `chat.auto_unarchive_on_new_message`.
+
+### Inspirations
+
+- musonza/chat (notification table pattern, archived state, data columns).
+- cmgmyr/laravel-messenger (participant helper API on User model).
+
 ## [2.0.0] - 2026-05-28
 
 Initial release of the `ozankurt/laravel-modules-chat` package.
