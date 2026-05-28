@@ -1,5 +1,6 @@
 /vendor
 /build
+/inspirations
 .phpunit.result.cache
 composer.lock.bak
 .idea

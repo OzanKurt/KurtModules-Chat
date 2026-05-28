@@ -39,6 +39,7 @@ final class ChatServiceProvider extends PackageServiceProvider
                 'create_chat_reactions_table',
                 'create_chat_mentions_table',
                 'create_chat_presence_table',
+                'extend_chat_tables_for_v2_1',
             ])
             ->hasCommands([
                 PrunePresenceCommand::class,
