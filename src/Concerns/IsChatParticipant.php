@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Kurt\Modules\Chat\Concerns;
 
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -15,7 +17,7 @@ use Kurt\Modules\Chat\Models\Presence;
 /**
  * Adds chat-related relationships and convenience methods to a User model.
  *
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait IsChatParticipant
 {
@@ -62,7 +64,7 @@ trait IsChatParticipant
     {
         $count = 0;
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, Participant> $participants */
+        /** @var Collection<int, Participant> $participants */
         $participants = $this->chatParticipants()->with('conversation')->get();
 
         foreach ($participants as $participant) {
