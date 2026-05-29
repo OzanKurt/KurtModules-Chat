@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Kurt\Modules\Chat\Models\Conversation;
 use Kurt\Modules\Chat\Models\Mention;
 use Kurt\Modules\Chat\Models\Message;
+use Kurt\Modules\Chat\Models\MessageFlag;
 use Kurt\Modules\Chat\Models\Participant;
 use Kurt\Modules\Chat\Models\Presence;
 use Kurt\Modules\Chat\Models\Reaction;
@@ -16,6 +17,8 @@ return [
     ],
     'edit_window_minutes' => 15,
     'message_max_length' => 4000,
+    'auto_unarchive_on_new_message' => true,
+    'encrypt_messages' => env('CHAT_ENCRYPT_MESSAGES', false),
     'attachments' => [
         'disk' => env('CHAT_MEDIA_DISK', 'public'),
         'max_size_kb' => 25_000,
@@ -35,6 +38,7 @@ return [
         'conversation' => Conversation::class,
         'participant' => Participant::class,
         'message' => Message::class,
+        'message_flag' => MessageFlag::class,
         'reaction' => Reaction::class,
         'mention' => Mention::class,
         'presence' => Presence::class,

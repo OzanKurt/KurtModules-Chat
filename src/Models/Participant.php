@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kurt\Modules\Chat\Models;
 
 use Database\Factories\Kurt\Modules\Chat\ParticipantFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +22,9 @@ use Kurt\Modules\Core\Concerns\ResolvesUser;
  * @property Carbon $joined_at
  * @property Carbon|null $last_read_at
  * @property Carbon|null $muted_until
+ * @property Carbon|null $archived_at
  * @property ParticipantNotifications $notifications
+ * @property array<string, mixed>|null $settings
  * @property Conversation $conversation
  */
 class Participant extends Model
@@ -41,7 +44,9 @@ class Participant extends Model
         'joined_at',
         'last_read_at',
         'muted_until',
+        'archived_at',
         'notifications',
+        'settings',
     ];
 
     /** @var array<string, string> */
@@ -51,6 +56,8 @@ class Participant extends Model
         'joined_at' => 'datetime',
         'last_read_at' => 'datetime',
         'muted_until' => 'datetime',
+        'archived_at' => 'datetime',
+        'settings' => 'array',
     ];
 
     /**
@@ -67,6 +74,45 @@ class Participant extends Model
     public function user(): BelongsTo
     {
         return $this->userBelongsTo();
+    }
+
+    public function archive(): self
+    {
+        $this->archived_at = now();
+        $this->save();
+
+        return $this;
+    }
+
+    public function unarchive(): self
+    {
+        $this->archived_at = null;
+        $this->save();
+
+        return $this;
+    }
+
+    public function isArchived(): bool
+    {
+        return $this->archived_at !== null;
+    }
+
+    /**
+     * @param  Builder<self>  $q
+     * @return Builder<self>
+     */
+    public function scopeArchived(Builder $q): Builder
+    {
+        return $q->whereNotNull('archived_at');
+    }
+
+    /**
+     * @param  Builder<self>  $q
+     * @return Builder<self>
+     */
+    public function scopeNotArchived(Builder $q): Builder
+    {
+        return $q->whereNull('archived_at');
     }
 
     protected static function newFactory(): ParticipantFactory

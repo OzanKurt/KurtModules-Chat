@@ -19,7 +19,7 @@ final class MessageObserver
     public function creating(Message $message): void
     {
         $max = (int) config('chat.message_max_length', 4000);
-        if ($max > 0 && mb_strlen($message->body) > $max) {
+        if ($max > 0 && mb_strlen($message->body ?? '') > $max) {
             throw new InvalidArgumentException(sprintf(
                 'Chat message body exceeds the maximum length of %d characters.',
                 $max,
@@ -34,7 +34,7 @@ final class MessageObserver
             return;
         }
 
-        $userIds = $this->extractor->extract($message->body);
+        $userIds = $this->extractor->extract($message->body ?? '');
 
         // Always store as the public array property; observer uses it post-create.
         $message->pendingMentionUserIds = $userIds;
