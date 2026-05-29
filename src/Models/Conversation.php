@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kurt\Modules\Chat\Models;
 
 use Database\Factories\Kurt\Modules\Chat\ConversationFactory;
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -223,11 +224,11 @@ class Conversation extends Model
     }
 
     /**
-     * @return \Illuminate\Contracts\Pagination\CursorPaginator<int, Message>
+     * @return CursorPaginator<int, Message>
      */
-    public function messagesCursor(int $perPage = 50): \Illuminate\Contracts\Pagination\CursorPaginator
+    public function messagesCursor(int $perPage = 50): CursorPaginator
     {
-        /** @var \Illuminate\Contracts\Pagination\CursorPaginator<int, Message> $paginator */
+        /** @var CursorPaginator<int, Message> $paginator */
         $paginator = $this->messages()
             ->latest('created_at')
             ->cursorPaginate($perPage);

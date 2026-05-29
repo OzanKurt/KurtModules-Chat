@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Contracts\Pagination\CursorPaginator;
 use Kurt\Modules\Chat\Enums\ConversationType;
 use Kurt\Modules\Chat\Models\Conversation;
 use Kurt\Modules\Chat\Tests\Stubs\StubUser;
@@ -23,7 +24,7 @@ it('returns a cursor paginator for messages', function () {
 
     $page = $room->messagesCursor(5);
 
-    expect($page)->toBeInstanceOf(\Illuminate\Contracts\Pagination\CursorPaginator::class);
+    expect($page)->toBeInstanceOf(CursorPaginator::class);
     expect($page->count())->toBe(5);
     expect($page->hasMorePages())->toBeTrue();
 });
