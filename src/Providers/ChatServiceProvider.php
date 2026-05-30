@@ -32,16 +32,7 @@ final class ChatServiceProvider extends PackageServiceProvider
             ->name('laravel-modules-chat')
             ->hasConfigFile('chat')
             ->hasTranslations()
-            ->hasMigrations([
-                'create_chat_conversations_table',
-                'create_chat_participants_table',
-                'create_chat_messages_table',
-                'create_chat_reactions_table',
-                'create_chat_mentions_table',
-                'create_chat_presence_table',
-                'extend_chat_tables_for_v2_1',
-                'create_chat_message_flags_table',
-            ])
+            ->discoversMigrations()
             ->hasCommands([
                 PrunePresenceCommand::class,
                 DemoCommand::class,
