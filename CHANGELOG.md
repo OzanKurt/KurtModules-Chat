@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-05-30
+
+### Added
+
+- Filament admin resources for **v3, v4, and v5** in parallel, registered through a single version-dispatching `Kurt\Modules\Chat\Filament\ChatPlugin::make()` facade that resolves the matching `V{n}` plugin from the installed Filament major via Core's `FilamentVersion`.
+  - `ConversationResource` — type/visibility enum selects + name/description; table with type & visibility badges, participant count, `last_message_at`, and type/visibility filters.
+  - `MessageResource` — moderation queue: body/type/conversation/`edited_at` form fields plus a `SpatieMediaLibraryFileUpload` on the `chat-attachments` collection. The table drops the `SoftDeletingScope` so soft-deleted messages surface, with a trashed filter, a flagged indicator, a conversation filter, and delete/restore/force-delete row + bulk actions.
+  - `PresenceResource` — read-only view of the `chat_presence` heartbeat table (user, status badge, status message, last heartbeat) with a status filter; no create/edit/delete.
+- `filament/spatie-laravel-media-library-plugin` dev dependency (`^3.0 || ^4.0 || ^5.0`) for the message-attachment upload field.
+- Per-Filament-version PHPStan configs (`phpstan-filament-v{3,4,5}.neon`); the base `phpstan.neon` excludes all three `src/Filament/V{3,4,5}` dirs and the `ChatPlugin` facade so the default analysis stays version-agnostic.
+- CI matrix Filament axis (`3.*`, `4.*`, `5.*`); each cell installs the matching Filament + media-library plugin and runs the per-major PHPStan config. Version-guarded Pest smoke tests assert each resource's structure (form fields, table columns, filters, actions) for the installed major.
+
 ## [2.1.1] - 2026-05-30
 
 ### Fixed

@@ -62,9 +62,48 @@ The package only depends on `illuminate/broadcasting`. It works with any driver 
 
 For tests, broadcasting is **never** booted — events are asserted via `Event::fake([MessageSent::class, ...])` and `Event::assertDispatched(...)`.
 
-## Filament
+## Filament admin
 
-Filament v3/v4/v5 admin resources are planned for v2.1. v2.0 is headless.
+The package ships parallel admin resource sets for Filament **v3, v4, and v5** —
+`ConversationResource`, `MessageResource`, and `PresenceResource`. The correct
+set is chosen at runtime from the installed Filament major, so you register a
+single version-dispatching plugin on your panel:
+
+```php
+use Filament\Panel;
+use Kurt\Modules\Chat\Filament\ChatPlugin;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        // ...
+        ->plugin(ChatPlugin::make());
+}
+```
+
+`ChatPlugin::make()` resolves to the matching `V3`/`V4`/`V5` plugin via
+`Kurt\Modules\Core\Support\FilamentVersion`. Install whichever Filament major
+your app uses, plus the Spatie media-library plugin (message attachments are
+edited through it):
+
+```bash
+# whichever your app runs
+composer require filament/filament:"^3.0|^4.0|^5.0"
+composer require filament/spatie-laravel-media-library-plugin:"^3.0|^4.0|^5.0"
+```
+
+What the resources give you:
+
+- **Conversations** — type (room/direct) and visibility (public/unlisted/private)
+  enum selects plus name and description; a table with type and visibility
+  badges, participant count, last-message timestamp, and type/visibility filters.
+- **Messages** — a moderation queue: body, type (user/system), conversation
+  select, an `edited_at` picker and a Spatie media-library upload for the
+  `chat-attachments` collection. The table surfaces soft-deleted messages (the
+  `SoftDeletingScope` is dropped) with a trashed filter, a flagged indicator, and
+  delete / restore / force-delete row and bulk actions for moderation.
+- **Presence** — a read-only view of the heartbeat table (user, status badge,
+  status message, last heartbeat) with a status filter; no create/edit/delete.
 
 ## License
 
