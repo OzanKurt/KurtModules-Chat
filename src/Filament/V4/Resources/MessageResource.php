@@ -32,9 +32,6 @@ use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Chat\Filament\V4\Resources\MessageResource\Pages;
 use Kurt\Modules\Chat\Models\Message;
 
-/**
- * @extends \Filament\Resources\Resource<Message>
- */
 class MessageResource extends Resource
 {
     protected static ?string $model = Message::class;
@@ -146,7 +143,7 @@ class MessageResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        return Message::query()
             ->withoutGlobalScope(SoftDeletingScope::class);
     }
 
