@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Kurt\Modules\Chat\Filament\V5\Resources;
+namespace Kurt\Modules\Chat\Filament\V4\Resources;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -29,7 +29,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Kurt\Modules\Chat\Enums\MessageType;
-use Kurt\Modules\Chat\Filament\V5\Resources\MessageResource\Pages;
+use Kurt\Modules\Chat\Filament\V4\Resources\MessageResource\Pages;
 use Kurt\Modules\Chat\Models\Message;
 
 /**
@@ -123,13 +123,13 @@ class MessageResource extends Resource
                     ->options(MessageType::class),
                 TrashedFilter::make(),
             ])
-            ->actions([
+            ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
                 RestoreAction::make(),
                 ForceDeleteAction::make(),
             ])
-            ->bulkActions([
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
