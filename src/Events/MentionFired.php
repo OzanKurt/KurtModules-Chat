@@ -10,7 +10,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use Kurt\Modules\Chat\Models\Mention;
+use Kurt\Modules\Interactions\Mentions\Models\Mention;
 
 final class MentionFired implements ShouldBroadcastNow
 {
@@ -26,7 +26,7 @@ final class MentionFired implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel("chat.user.{$this->mention->user_id}"),
+            new PrivateChannel("chat.user.{$this->mention->mentioned_user_id}"),
         ];
     }
 }

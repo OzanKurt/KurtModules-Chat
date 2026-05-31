@@ -11,12 +11,12 @@ use Kurt\Modules\Chat\Console\Commands\DemoCommand;
 use Kurt\Modules\Chat\Console\Commands\PrunePresenceCommand;
 use Kurt\Modules\Chat\Models\Conversation;
 use Kurt\Modules\Chat\Models\Message;
-use Kurt\Modules\Chat\Models\Reaction;
 use Kurt\Modules\Chat\Observers\MessageObserver;
 use Kurt\Modules\Chat\Policies\ConversationPolicy;
 use Kurt\Modules\Chat\Policies\MessagePolicy;
 use Kurt\Modules\Chat\Policies\ReactionPolicy;
 use Kurt\Modules\Core\Providers\PackageServiceProvider;
+use Kurt\Modules\Interactions\Engagement\Models\Reaction;
 use Spatie\LaravelPackageTools\Package;
 
 final class ChatServiceProvider extends PackageServiceProvider

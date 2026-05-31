@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-05-31
+
+### Changed
+
+- **Reactions and mentions now persist through the [Interactions](https://github.com/OzanKurt/KurtModules-Interactions) module** instead of Chat-local tables. `Message` uses Interactions' `Reactable` and `Mentionable` traits, so `reactWith()` / `unreactWith()` and the mention pipeline write to the shared `interactions_reactions` / `interactions_mentions` store (reactable/mentionable = `Message`). Behaviour is unchanged: idempotent reactions, username mention extraction, `MentionFired`, the `ReactionAdded` / `ReactionRemoved` broadcast events, and the `seen_at` read receipt all still work.
+- `Message::reactions()` / `Message::mentions()` are now polymorphic `MorphMany` relations returning `Kurt\Modules\Interactions\Engagement\Models\Reaction` / `Kurt\Modules\Interactions\Mentions\Models\Mention`. The Chat-local `Reaction` / `Mention` models and their factories were removed, and mention rows now key on `mentioned_user_id` (the Interactions column) rather than `user_id`.
+
+### Added
+
+- `ozankurt/laravel-modules-interactions` (`^1.3`) dependency.
+- One-way data migrations that copy existing `chat_reactions` → `interactions_reactions` and `chat_mentions` → `interactions_mentions` (preserving `seen_at`), then drop the legacy tables. Both are guarded and no-op when either table is absent.
+
 ## [2.2.0] - 2026-05-30
 
 ### Added

@@ -11,7 +11,8 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Kurt\Modules\Chat\Enums\ConversationType;
-use Kurt\Modules\Chat\Models\Reaction;
+use Kurt\Modules\Chat\Models\Message;
+use Kurt\Modules\Interactions\Engagement\Models\Reaction;
 
 final class ReactionAdded implements ShouldBroadcastNow
 {
@@ -26,7 +27,9 @@ final class ReactionAdded implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        $conversation = $this->reaction->message->conversation;
+        /** @var Message $message */
+        $message = $this->reaction->reactable;
+        $conversation = $message->conversation;
         $isDirect = $conversation->type === ConversationType::Direct;
 
         return [

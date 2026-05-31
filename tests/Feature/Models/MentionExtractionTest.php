@@ -29,7 +29,7 @@ it('extracts mentions by username and creates Mention rows', function () {
         'body' => 'hello @bob and @carol — how are you?',
     ]);
 
-    $mentions = $message->mentions()->pluck('user_id')->all();
+    $mentions = $message->mentions()->pluck('mentioned_user_id')->all();
     expect($mentions)->toContain($this->bob->id);
     expect($mentions)->toContain($this->carol->id);
     expect($mentions)->not->toContain($this->alice->id);
@@ -72,7 +72,7 @@ it('supports a custom resolver via config swap', function () {
         'body' => 'completely unrelated body',
     ]);
 
-    $mentions = $message->mentions()->pluck('user_id')->all();
+    $mentions = $message->mentions()->pluck('mentioned_user_id')->all();
     expect($mentions)->toBe([$carol->id]);
     Event::assertDispatchedTimes(MentionFired::class, 1);
 });

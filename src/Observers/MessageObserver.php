@@ -8,9 +8,9 @@ use InvalidArgumentException;
 use Kurt\Modules\Chat\Events\MentionFired;
 use Kurt\Modules\Chat\Events\MessageDeleted;
 use Kurt\Modules\Chat\Events\MessageEdited;
-use Kurt\Modules\Chat\Models\Mention;
 use Kurt\Modules\Chat\Models\Message;
 use Kurt\Modules\Chat\Support\MentionExtractor;
+use Kurt\Modules\Interactions\Mentions\Models\Mention;
 
 final class MessageObserver
 {
@@ -47,7 +47,7 @@ final class MessageObserver
         foreach ($userIds as $userId) {
             /** @var Mention $mention */
             $mention = $message->mentions()->firstOrCreate([
-                'user_id' => $userId,
+                'mentioned_user_id' => $userId,
             ]);
 
             MentionFired::dispatch($mention);
@@ -66,7 +66,7 @@ final class MessageObserver
             foreach ($userIds as $userId) {
                 /** @var Mention $mention */
                 $mention = $message->mentions()->firstOrCreate([
-                    'user_id' => $userId,
+                    'mentioned_user_id' => $userId,
                 ]);
 
                 MentionFired::dispatch($mention);

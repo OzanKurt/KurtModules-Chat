@@ -6,7 +6,7 @@ namespace Kurt\Modules\Chat\Policies;
 
 use Illuminate\Contracts\Auth\Access\Gate;
 use Illuminate\Contracts\Auth\Authenticatable;
-use Kurt\Modules\Chat\Models\Reaction;
+use Kurt\Modules\Interactions\Engagement\Models\Reaction;
 
 final class ReactionPolicy
 {

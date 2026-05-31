@@ -21,6 +21,7 @@ use Kurt\Modules\Chat\Tests\Fixtures\AdminPanelProvider;
 use Kurt\Modules\Core\Providers\CoreServiceProvider;
 use Kurt\Modules\Core\Support\FilamentVersion;
 use Kurt\Modules\Core\Testing\PackageTestCase;
+use Kurt\Modules\Interactions\Providers\InteractionsServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Spatie\MediaLibrary\MediaLibraryServiceProvider;
 
@@ -50,6 +51,7 @@ abstract class TestCase extends PackageTestCase
     {
         return array_merge([
             MediaLibraryServiceProvider::class,
+            InteractionsServiceProvider::class,
             ChatServiceProvider::class,
         ], $this->filamentProviders());
     }
@@ -63,6 +65,7 @@ abstract class TestCase extends PackageTestCase
         return array_merge([
             CoreServiceProvider::class,
             MediaLibraryServiceProvider::class,
+            InteractionsServiceProvider::class,
             ChatServiceProvider::class,
         ], $this->filamentProviders());
     }
@@ -131,5 +134,13 @@ abstract class TestCase extends PackageTestCase
 
         $this->loadMigrationsFrom(__DIR__.'/migrations');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+        // The Interactions package owns the reactions/mentions storage that Chat
+        // now writes to; load its migrations so the engagement tables (and the
+        // chat→interactions data-migration steps) are present during tests.
+        $this->loadMigrationsFrom(dirname(
+            (string) (new \ReflectionClass(InteractionsServiceProvider::class))->getFileName(),
+            3,
+        ).'/database/migrations');
     }
 }

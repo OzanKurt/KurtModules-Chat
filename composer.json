@@ -1,9 +1,21 @@
 {
   "name": "ozankurt/laravel-modules-chat",
   "description": "Real-time chat for Laravel: rooms, DMs, threads, presence, reactions, attachments, mentions.",
-  "keywords": ["laravel", "filament", "kurtmodules", "chat", "messaging", "reverb"],
+  "keywords": [
+    "laravel",
+    "filament",
+    "kurtmodules",
+    "chat",
+    "messaging",
+    "reverb"
+  ],
   "license": "MIT",
-  "authors": [{ "name": "Ozan Kurt", "email": "ozankurt2@gmail.com" }],
+  "authors": [
+    {
+      "name": "Ozan Kurt",
+      "email": "ozankurt2@gmail.com"
+    }
+  ],
   "require": {
     "php": "^8.4",
     "illuminate/broadcasting": "^12.0 || ^13.0",
@@ -11,6 +23,7 @@
     "illuminate/database": "^12.0 || ^13.0",
     "illuminate/support": "^12.0 || ^13.0",
     "ozankurt/laravel-modules-core": "^2.0",
+    "ozankurt/laravel-modules-interactions": "^1.3",
     "spatie/laravel-medialibrary": "^11.0",
     "spatie/laravel-package-tools": "^1.92"
   },
@@ -28,18 +41,40 @@
   "suggest": {
     "laravel/reverb": "First-party WebSocket server for Laravel; recommended Chat transport."
   },
-  "autoload": { "psr-4": { "Kurt\\Modules\\Chat\\": "src/" } },
+  "autoload": {
+    "psr-4": {
+      "Kurt\\Modules\\Chat\\": "src/"
+    }
+  },
   "autoload-dev": {
     "psr-4": {
       "Kurt\\Modules\\Chat\\Tests\\": "tests/",
       "Database\\Factories\\Kurt\\Modules\\Chat\\": "database/factories/"
     }
   },
-  "extra": { "laravel": { "providers": ["Kurt\\Modules\\Chat\\Providers\\ChatServiceProvider"] } },
-  "repositories": [
-    { "type": "vcs", "url": "https://github.com/OzanKurt/KurtModules-Core" }
-  ],
-  "config": { "sort-packages": true, "allow-plugins": { "pestphp/pest-plugin": true } },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Kurt\\Modules\\Chat\\Providers\\ChatServiceProvider"
+      ]
+    }
+  },
+  "repositories": {
+    "interactions": {
+      "type": "vcs",
+      "url": "https://github.com/OzanKurt/KurtModules-Interactions"
+    },
+    "0": {
+      "type": "vcs",
+      "url": "https://github.com/OzanKurt/KurtModules-Core"
+    }
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  },
   "scripts": {
     "test": "vendor/bin/pest",
     "lint": "vendor/bin/pint --test",

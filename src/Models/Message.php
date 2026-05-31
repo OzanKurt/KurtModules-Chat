@@ -16,6 +16,10 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Core\Concerns\ResolvesUser;
+use Kurt\Modules\Interactions\Engagement\Concerns\Reactable;
+use Kurt\Modules\Interactions\Engagement\Models\Reaction;
+use Kurt\Modules\Interactions\Mentions\Concerns\Mentionable;
+use Kurt\Modules\Interactions\Mentions\Models\Mention;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Throwable;
@@ -44,6 +48,8 @@ class Message extends Model implements HasMedia
     use HasFactory;
 
     use InteractsWithMedia;
+    use Mentionable;
+    use Reactable;
     use ResolvesUser;
     use SoftDeletes;
 
@@ -105,22 +111,6 @@ class Message extends Model implements HasMedia
     public function replies(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
-    }
-
-    /**
-     * @return HasMany<Reaction, $this>
-     */
-    public function reactions(): HasMany
-    {
-        return $this->hasMany(Reaction::class);
-    }
-
-    /**
-     * @return HasMany<Mention, $this>
-     */
-    public function mentions(): HasMany
-    {
-        return $this->hasMany(Mention::class);
     }
 
     /**
