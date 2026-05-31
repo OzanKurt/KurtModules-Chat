@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.1] - 2026-05-31
+
+### Removed
+- The legacy `chat_reactions` / `chat_mentions` tables and their data
+  migrations. Reactions and mentions live in the shared `interactions_*` store
+  from a fresh install — nothing creates or reads the Chat-local tables anymore.
+
 ## [2.3.0] - 2026-05-31
 
 ### Changed
@@ -12,7 +19,6 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 
 - `ozankurt/laravel-modules-interactions` (`^1.3`) dependency.
-- One-way data migrations that copy existing `chat_reactions` → `interactions_reactions` and `chat_mentions` → `interactions_mentions` (preserving `seen_at`), then drop the legacy tables. Both are guarded and no-op when either table is absent.
 
 ## [2.2.0] - 2026-05-30
 
