@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Kurt\Modules\Chat\Concerns;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Chat\Models\Conversation;
 use Kurt\Modules\Chat\Models\Message;
 use Kurt\Modules\Chat\Models\Participant;
@@ -62,24 +63,31 @@ trait IsChatParticipant
 
     public function unreadChatMessagesCount(): int
     {
-        $count = 0;
+        $userId = $this->getKey();
 
-        /** @var Collection<int, Participant> $participants */
-        $participants = $this->chatParticipants()->with('conversation')->get();
-
-        foreach ($participants as $participant) {
-            $query = $participant->conversation
-                ->messages()
-                ->where('user_id', '!=', $this->getKey());
-
-            if ($participant->last_read_at !== null) {
-                $query->where('created_at', '>', $participant->last_read_at);
-            }
-
-            $count += $query->count();
-        }
-
-        return $count;
+        // Single grouped aggregate instead of one COUNT per conversation: join
+        // the user's participant rows to their conversations' messages and apply
+        // each row's own last_read_at cutoff via a column comparison. Excludes
+        // the reader's own messages and author-less system messages.
+        return (int) Message::query()
+            ->join(
+                'chat_participants',
+                'chat_participants.conversation_id',
+                '=',
+                'chat_messages.conversation_id',
+            )
+            ->where('chat_participants.user_id', $userId)
+            ->where('chat_messages.user_id', '!=', $userId)
+            ->where('chat_messages.type', '!=', MessageType::System->value)
+            ->where(function (Builder $q): void {
+                $q->whereNull('chat_participants.last_read_at')
+                    ->orWhereColumn(
+                        'chat_messages.created_at',
+                        '>',
+                        'chat_participants.last_read_at',
+                    );
+            })
+            ->count();
     }
 
     public function getChatDisplayName(): string

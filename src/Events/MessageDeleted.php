@@ -10,6 +10,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Kurt\Modules\Chat\Enums\ConversationType;
 
 final class MessageDeleted implements ShouldBroadcastNow
 {
@@ -20,6 +21,7 @@ final class MessageDeleted implements ShouldBroadcastNow
     public function __construct(
         public readonly int $messageId,
         public readonly int $conversationId,
+        public readonly ConversationType $conversationType,
     ) {}
 
     /**
@@ -27,8 +29,12 @@ final class MessageDeleted implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
+        $isDirect = $this->conversationType === ConversationType::Direct;
+
         return [
-            new PrivateChannel("chat.room.{$this->conversationId}"),
+            $isDirect
+                ? new PrivateChannel("chat.dm.{$this->conversationId}")
+                : new PrivateChannel("chat.room.{$this->conversationId}"),
         ];
     }
 }
