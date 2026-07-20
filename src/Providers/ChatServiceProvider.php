@@ -41,6 +41,10 @@ final class ChatServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+        parent::packageBooted();
+
+        $this->registerModuleApi(__DIR__.'/../../routes/api.php');
+
         Message::observe(MessageObserver::class);
 
         if ((bool) config('chat.broadcasting.enabled', true)) {

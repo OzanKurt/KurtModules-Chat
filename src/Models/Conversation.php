@@ -38,6 +38,8 @@ use Kurt\Modules\Core\Concerns\ResolvesUser;
  * @property ConversationVisibility $visibility
  * @property int $created_by
  * @property Carbon|null $last_message_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  * @property Collection<int, Participant> $participants
  * @property Collection<int, Message> $messages
  * @property Collection<int, Message> $rootMessages

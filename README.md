@@ -62,6 +62,55 @@ The package only depends on `illuminate/broadcasting`. It works with any driver 
 
 For tests, broadcasting is **never** booted — events are asserted via `Event::fake([MessageSent::class, ...])` and `Event::assertDispatched(...)`.
 
+## REST API
+
+An out-of-the-box JSON REST API built on the Core [API kit](https://github.com/OzanKurt/KurtModules-Core#api-kit). It is the **history + send + management** surface that complements real-time broadcasting - it does **not** replace it: sending a message over HTTP still dispatches `MessageSent`, so websocket clients update exactly as they do for a message sent through the domain service directly.
+
+**Safe by default.** Nothing is registered until you opt in. Set the mode in your app's `.env`:
+
+```dotenv
+CHAT_HTTP_MODE=api
+```
+
+Chat has no public surface, so **every** endpoint requires an authenticated, participating user: guests get `401`, and non-participants get `403`. Reads are scoped to the caller's conversations via the chat Policies; all writes are additionally Policy-checked (edit/delete honour `chat.edit_window_minutes`; add/remove participant and rename require room owner/admin).
+
+Configure the surface under `chat.http` (published `config/chat.php`):
+
+| Key | Default | Purpose |
+|---|---|---|
+| `mode` | `env('CHAT_HTTP_MODE', 'headless')` | `headless` \| `api` \| `ui`. Routes register only for `api`/`ui`. |
+| `prefix` | `api/chat` | URL prefix for every route. |
+| `middleware` | `['api']` | Base middleware for the route group. |
+| `auth_middleware` | `['auth']` | Applied to the whole group (chat is never public). Set to e.g. `['auth:sanctum']` for token auth. |
+| `rate_limit` | `'60,1'` | `maxAttempts,decayMinutes` for the `chat-api` throttle (keyed by user id). |
+
+Responses use the Core envelope: `{ "data": ..., "meta": ... }` for success (paginated lists add `meta.pagination`), `{ "message": ..., "errors": ... }` for errors.
+
+### Endpoints
+
+All paths are relative to the `api/chat` prefix. Named routes use the `chat.api.` prefix.
+
+| Method | Path | Action |
+|---|---|---|
+| `GET` | `conversations` | The authenticated user's conversations (paginated, most-recent-active first; `?filter[type]`, `?filter[visibility]`, `?sort`). |
+| `POST` | `conversations` | Create a room (`type=room`, `name`, optional `description`, `participant_ids[]`) or resolve/create a direct conversation (`type=direct`, `user_id`). |
+| `GET` | `conversations/{conversation}` | Show a conversation. |
+| `PATCH` | `conversations/{conversation}` | Rename / update a room (owner/admin). |
+| `DELETE` | `conversations/{conversation}` | Leave the conversation (removes the caller's participant row). |
+| `GET` | `conversations/{conversation}/messages` | Message history, paginated newest-first (`?per_page`, `?page`). |
+| `POST` | `conversations/{conversation}/messages` | Send a message (`body`, optional `parent_id`) via `Conversation::send()` - dispatches `MessageSent`. |
+| `PATCH` | `messages/{message}` | Edit own message within the edit window (dispatches `MessageEdited`). |
+| `DELETE` | `messages/{message}` | Soft-delete own message within the edit window (dispatches `MessageDeleted`). |
+| `POST` | `messages/{message}/reactions` | Add a reaction (`emoji`) - idempotent, dispatches `ReactionAdded`. |
+| `DELETE` | `messages/{message}/reactions` | Remove own reaction (`emoji`) - dispatches `ReactionRemoved`. |
+| `POST` | `conversations/{conversation}/read` | Mark read up to now, or up to a message via `message_id`. |
+| `GET` | `conversations/{conversation}/unread-count` | Unread message count for the caller. |
+| `GET` | `conversations/{conversation}/participants` | List participants (paginated). |
+| `POST` | `conversations/{conversation}/participants` | Add a participant (`user_id`, optional `role`; owner/admin). |
+| `DELETE` | `conversations/{conversation}/participants/{user}` | Remove a participant (owner/admin). |
+
+Direct-message creation and participant add/remove resolve users through the Core `UserResolver` (`kurtmodules.user_model` or `auth.providers.users.model`).
+
 ## Filament admin
 
 The package ships parallel admin resource sets for Filament **v3, v4, and v5** —
