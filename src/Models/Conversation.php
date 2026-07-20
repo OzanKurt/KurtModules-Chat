@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Kurt\Modules\Chat\Models;
 
 use Database\Factories\Kurt\Modules\Chat\ConversationFactory;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -76,6 +77,17 @@ class Conversation extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(Participant::class);
+    }
+
+    /**
+     * Whether the given user is a participant of this conversation. This is the
+     * authorization primitive behind the private/presence broadcast channels.
+     */
+    public function hasParticipant(Authenticatable $user): bool
+    {
+        return $this->participants()
+            ->where('user_id', $user->getAuthIdentifier())
+            ->exists();
     }
 
     /**
