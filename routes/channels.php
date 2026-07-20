@@ -2,35 +2,25 @@
 
 declare(strict_types=1);
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Broadcast;
 use Kurt\Modules\Chat\Models\Conversation;
 
-Broadcast::channel('chat.room.{conversationId}', function ($user, int $conversationId) {
-    return Conversation::query()
-        ->where('id', $conversationId)
-        ->whereHas('participants', fn (Builder $q) => $q->where('user_id', $user->getAuthIdentifier()))
-        ->exists();
-});
+$authorizesConversation = function ($user, int $conversationId): bool {
+    $conversation = Conversation::query()->find($conversationId);
 
-Broadcast::channel('chat.dm.{conversationId}', function ($user, int $conversationId) {
-    return Conversation::query()
-        ->where('id', $conversationId)
-        ->whereHas('participants', fn (Builder $q) => $q->where('user_id', $user->getAuthIdentifier()))
-        ->exists();
-});
+    return $conversation !== null && $conversation->hasParticipant($user);
+};
+
+Broadcast::channel('chat.room.{conversationId}', $authorizesConversation);
+
+Broadcast::channel('chat.dm.{conversationId}', $authorizesConversation);
 
 Broadcast::channel('chat.user.{userId}', function ($user, int $userId) {
     return (int) $user->getAuthIdentifier() === $userId;
 });
 
-Broadcast::channel('chat.conversation.{conversationId}', function ($user, int $conversationId) {
-    $isParticipant = Conversation::query()
-        ->where('id', $conversationId)
-        ->whereHas('participants', fn (Builder $q) => $q->where('user_id', $user->getAuthIdentifier()))
-        ->exists();
-
-    if (! $isParticipant) {
+Broadcast::channel('chat.conversation.{conversationId}', function ($user, int $conversationId) use ($authorizesConversation) {
+    if (! $authorizesConversation($user, $conversationId)) {
         return false;
     }
 
