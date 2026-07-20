@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Kurt\Modules\Chat\Enums\ConversationType;
@@ -156,36 +157,51 @@ class Conversation extends Model
             return $existing;
         }
 
-        /** @var self $created */
-        $created = DB::transaction(function () use ($a, $b, $key): self {
-            /** @var self $convo */
-            $convo = static::query()->create([
-                'type' => ConversationType::Direct,
-                'dm_key' => $key,
-                'created_by' => $a->getKey(),
-                'visibility' => ConversationVisibility::Private,
-            ]);
+        try {
+            /** @var self $created */
+            $created = DB::transaction(function () use ($a, $b, $key): self {
+                /** @var self $convo */
+                $convo = static::query()->create([
+                    'type' => ConversationType::Direct,
+                    'dm_key' => $key,
+                    'created_by' => $a->getKey(),
+                    'visibility' => ConversationVisibility::Private,
+                ]);
 
-            $now = now();
-            $convo->participants()->createMany([
-                [
-                    'user_id' => $a->getKey(),
-                    'role' => ParticipantRole::Member->value,
-                    'joined_at' => $now,
-                    'notifications' => ParticipantNotifications::All->value,
-                ],
-                [
-                    'user_id' => $b->getKey(),
-                    'role' => ParticipantRole::Member->value,
-                    'joined_at' => $now,
-                    'notifications' => ParticipantNotifications::All->value,
-                ],
-            ]);
+                $now = now();
+                $convo->participants()->createMany([
+                    [
+                        'user_id' => $a->getKey(),
+                        'role' => ParticipantRole::Member->value,
+                        'joined_at' => $now,
+                        'notifications' => ParticipantNotifications::All->value,
+                    ],
+                    [
+                        'user_id' => $b->getKey(),
+                        'role' => ParticipantRole::Member->value,
+                        'joined_at' => $now,
+                        'notifications' => ParticipantNotifications::All->value,
+                    ],
+                ]);
 
-            return $convo;
-        });
+                return $convo;
+            });
 
-        return $created;
+            return $created;
+        } catch (QueryException $e) {
+            // A concurrent caller won the race and inserted the same dm_key
+            // first; the unique index on dm_key rejected our insert. Return the
+            // conversation that actually persisted instead of surfacing the
+            // duplicate-key violation.
+            /** @var self|null $winner */
+            $winner = static::query()->where('dm_key', $key)->first();
+
+            if ($winner !== null) {
+                return $winner;
+            }
+
+            throw $e;
+        }
     }
 
     public function send(Model $author, string $body, ?Message $parent = null): Message
@@ -245,6 +261,7 @@ class Conversation extends Model
         /** @var CursorPaginator<int, Message> $paginator */
         $paginator = $this->messages()
             ->latest('created_at')
+            ->orderBy('id', 'desc')
             ->cursorPaginate($perPage);
 
         return $paginator;
@@ -286,7 +303,13 @@ class Conversation extends Model
 
         $since = $participant->last_read_at;
 
-        $query = $this->messages();
+        // Mirror IsChatParticipant::unreadChatMessagesCount: a message is only
+        // "unread" for someone else's non-system content, so exclude the
+        // reader's own messages and author-less system messages.
+        $query = $this->messages()
+            ->where('user_id', '!=', $user->getKey())
+            ->where('type', '!=', MessageType::System->value);
+
         if ($since !== null) {
             $query->where('created_at', '>', $since);
         }

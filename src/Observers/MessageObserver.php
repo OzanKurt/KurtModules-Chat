@@ -80,6 +80,10 @@ final class MessageObserver
 
     public function deleted(Message $message): void
     {
-        MessageDeleted::dispatch((int) $message->getKey(), (int) $message->conversation_id);
+        MessageDeleted::dispatch(
+            (int) $message->getKey(),
+            (int) $message->conversation_id,
+            $message->conversation->type,
+        );
     }
 }

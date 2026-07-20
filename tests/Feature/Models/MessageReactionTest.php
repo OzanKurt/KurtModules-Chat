@@ -89,3 +89,48 @@ it('does not broadcast ReactionRemoved when there is nothing to remove', functio
 
     Event::assertNotDispatched(ReactionRemoved::class);
 });
+
+it('broadcasts ReactionRemoved on the room conversation channel, not chat.message', function () {
+    $this->message->reactWith($this->alice, '👍');
+
+    Event::fake([ReactionAdded::class, ReactionRemoved::class]);
+
+    $this->message->unreactWith($this->alice, '👍');
+
+    Event::assertDispatched(ReactionRemoved::class, function (ReactionRemoved $event): bool {
+        $channels = array_map(
+            static fn ($channel): string => $channel->name,
+            $event->broadcastOn(),
+        );
+
+        return $channels === ['private-chat.room.'.$this->message->conversation_id];
+    });
+});
+
+it('broadcasts ReactionRemoved on the chat.dm channel for direct conversations', function () {
+    $bob = StubUser::create(['email' => 'bob@example.com']);
+    $dm = Conversation::query()->create([
+        'type' => ConversationType::Direct,
+        'dm_key' => 'dm-key-reaction',
+        'created_by' => $this->alice->id,
+    ]);
+    /** @var Message $message */
+    $message = $dm->messages()->create([
+        'user_id' => $this->alice->id,
+        'body' => 'hi bob',
+    ]);
+    $message->reactWith($bob, '👍');
+
+    Event::fake([ReactionAdded::class, ReactionRemoved::class]);
+
+    $message->unreactWith($bob, '👍');
+
+    Event::assertDispatched(ReactionRemoved::class, function (ReactionRemoved $event) use ($dm): bool {
+        $channels = array_map(
+            static fn ($channel): string => $channel->name,
+            $event->broadcastOn(),
+        );
+
+        return $channels === ['private-chat.dm.'.$dm->id];
+    });
+});

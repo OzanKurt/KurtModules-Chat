@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Facades\DB;
 use Kurt\Modules\Chat\Enums\ConversationType;
 use Kurt\Modules\Chat\Enums\ParticipantNotifications;
 use Kurt\Modules\Chat\Enums\ParticipantRole;
@@ -47,6 +48,45 @@ it('counts unread messages excluding the user own messages', function () {
 
     // Alice should see 2 unread from Bob, Bob should see 0 (his own messages).
     expect($this->alice->unreadChatMessagesCount())->toBe(2);
+    expect($this->bob->unreadChatMessagesCount())->toBe(0);
+});
+
+it('counts unread across many conversations with a bounded number of queries', function () {
+    // Fan Alice out across several conversations, each with unread messages
+    // from another author. The count must not scale a COUNT query per
+    // conversation (the previous N+1); a single aggregate should suffice.
+    for ($i = 0; $i < 5; $i++) {
+        $room = Conversation::query()->create([
+            'type' => ConversationType::Room,
+            'name' => "room {$i}",
+            'created_by' => $this->alice->id,
+        ]);
+        foreach ([$this->alice, $this->bob] as $user) {
+            $room->participants()->create([
+                'user_id' => $user->id,
+                'role' => ParticipantRole::Member->value,
+                'joined_at' => now(),
+                'notifications' => ParticipantNotifications::All->value,
+            ]);
+        }
+        $room->messages()->create(['user_id' => $this->bob->id, 'body' => "hi {$i}"]);
+    }
+
+    DB::enableQueryLog();
+    $count = $this->alice->unreadChatMessagesCount();
+    $queries = DB::getQueryLog();
+    DB::disableQueryLog();
+
+    // 5 conversations, each with one unread message from Bob.
+    expect($count)->toBe(5);
+    // A single aggregate query regardless of conversation count.
+    expect($queries)->toHaveCount(1);
+});
+
+it('excludes author-less system messages from the unread fan-out', function () {
+    $this->room->systemMessage('topic changed');
+
+    expect($this->alice->unreadChatMessagesCount())->toBe(0);
     expect($this->bob->unreadChatMessagesCount())->toBe(0);
 });
 

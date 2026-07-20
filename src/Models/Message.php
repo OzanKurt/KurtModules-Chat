@@ -182,6 +182,8 @@ class Message extends Model implements HasMedia
                 (int) $this->getKey(),
                 (int) $user->getKey(),
                 $emoji,
+                (int) $this->conversation_id,
+                $this->conversation->type,
             );
         }
     }
