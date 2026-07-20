@@ -21,6 +21,8 @@ use Kurt\Modules\Chat\Enums\MessageType;
 use Kurt\Modules\Chat\Enums\ParticipantNotifications;
 use Kurt\Modules\Chat\Enums\ParticipantRole;
 use Kurt\Modules\Chat\Events\MessageSent;
+use Kurt\Modules\Chat\Events\UserStartedTyping;
+use Kurt\Modules\Chat\Events\UserStoppedTyping;
 use Kurt\Modules\Chat\Support\ConversationKey;
 use Kurt\Modules\Core\Concerns\ResolvesUser;
 
@@ -234,6 +236,22 @@ class Conversation extends Model
             ->cursorPaginate($perPage);
 
         return $paginator;
+    }
+
+    /**
+     * Broadcast that the given user has started typing in this conversation.
+     */
+    public function startTyping(Model $user): void
+    {
+        UserStartedTyping::dispatch($user, (int) $this->getKey());
+    }
+
+    /**
+     * Broadcast that the given user has stopped typing in this conversation.
+     */
+    public function stopTyping(Model $user): void
+    {
+        UserStoppedTyping::dispatch($user, (int) $this->getKey());
     }
 
     public function markRead(Model $user): void
