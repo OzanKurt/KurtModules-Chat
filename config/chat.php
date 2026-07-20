@@ -15,6 +15,29 @@ return [
         'enabled' => true,
         'connection' => env('CHAT_BROADCAST_CONNECTION'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | HTTP / REST API
+    |--------------------------------------------------------------------------
+    |
+    | The out-of-the-box JSON REST surface, built on the Core API kit. It is a
+    | complement to real-time broadcasting, not a replacement: sending a message
+    | over HTTP still dispatches the domain event so websocket clients update.
+    |
+    | Safe-by-default: `mode` is `headless`, so no routes register until a
+    | consumer opts in with CHAT_HTTP_MODE=api (or `ui`). Chat has no public
+    | surface — every endpoint requires an authenticated, participating user, so
+    | the auth middleware is applied to the whole group (not just writes).
+    |
+    */
+    'http' => [
+        'mode' => env('CHAT_HTTP_MODE', 'headless'),
+        'prefix' => 'api/chat',
+        'middleware' => ['api'],
+        'auth_middleware' => ['auth'],
+        'rate_limit' => '60,1',
+    ],
     'edit_window_minutes' => 15,
     'message_max_length' => 4000,
     'auto_unarchive_on_new_message' => true,
