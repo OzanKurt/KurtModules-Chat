@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 use Kurt\Modules\Chat\Enums\MessageType;
+use Kurt\Modules\Chat\Events\ReactionAdded;
+use Kurt\Modules\Chat\Events\ReactionRemoved;
 use Kurt\Modules\Core\Concerns\ResolvesUser;
 use Kurt\Modules\Interactions\Engagement\Concerns\Reactable;
 use Kurt\Modules\Interactions\Engagement\Models\Reaction;
@@ -158,15 +160,30 @@ class Message extends Model implements HasMedia
             'emoji' => $emoji,
         ]);
 
+        // Only broadcast when a reaction was actually added, keeping the
+        // operation idempotent for repeat reactions with the same emoji.
+        if ($reaction->wasRecentlyCreated) {
+            ReactionAdded::dispatch($reaction);
+        }
+
         return $reaction;
     }
 
     public function unreactWith(Model $user, string $emoji): void
     {
-        $this->reactions()
+        $deleted = $this->reactions()
             ->where('user_id', $user->getKey())
             ->where('emoji', $emoji)
             ->delete();
+
+        // Only broadcast when a reaction was actually removed.
+        if ($deleted > 0) {
+            ReactionRemoved::dispatch(
+                (int) $this->getKey(),
+                (int) $user->getKey(),
+                $emoji,
+            );
+        }
     }
 
     public function registerMediaCollections(): void

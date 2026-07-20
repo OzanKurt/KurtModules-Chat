@@ -3,12 +3,12 @@
 declare(strict_types=1);
 
 use Kurt\Modules\Chat\Models\Conversation;
-use Kurt\Modules\Chat\Models\Mention;
 use Kurt\Modules\Chat\Models\Message;
 use Kurt\Modules\Chat\Models\MessageFlag;
 use Kurt\Modules\Chat\Models\Participant;
 use Kurt\Modules\Chat\Models\Presence;
-use Kurt\Modules\Chat\Models\Reaction;
+use Kurt\Modules\Interactions\Engagement\Models\Reaction;
+use Kurt\Modules\Interactions\Mentions\Models\Mention;
 
 return [
     'broadcasting' => [
