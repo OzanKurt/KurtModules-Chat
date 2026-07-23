@@ -15,6 +15,7 @@ use Kurt\Modules\Chat\Observers\MessageObserver;
 use Kurt\Modules\Chat\Policies\ConversationPolicy;
 use Kurt\Modules\Chat\Policies\MessagePolicy;
 use Kurt\Modules\Chat\Policies\ReactionPolicy;
+use Kurt\Modules\Core\Modules\ModuleManifest;
 use Kurt\Modules\Core\Providers\PackageServiceProvider;
 use Kurt\Modules\Interactions\Engagement\Models\Reaction;
 use Spatie\LaravelPackageTools\Package;
@@ -37,6 +38,13 @@ final class ChatServiceProvider extends PackageServiceProvider
                 PrunePresenceCommand::class,
                 DemoCommand::class,
             ]);
+    }
+
+    protected function moduleManifest(): ?ModuleManifest
+    {
+        return ModuleManifest::make('chat')
+            ->name('Chat')
+            ->description('Real-time chat for Laravel: rooms, DMs, threads, presence, reactions, attachments, mentions.');
     }
 
     public function packageBooted(): void
