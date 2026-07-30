@@ -5,7 +5,7 @@ Real-time **chat** module for Laravel: rooms, direct messages, threaded replies,
 ## Requirements
 
 - PHP 8.4+
-- Laravel 12.x or 13.x
+- Laravel 13.x
 - `ozankurt/laravel-modules-core` v2.x
 
 ## Installation
