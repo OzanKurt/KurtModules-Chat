@@ -40,7 +40,7 @@ final class ChatServiceProvider extends PackageServiceProvider
             ]);
     }
 
-    protected function moduleManifest(): ?ModuleManifest
+    protected function moduleManifest(): ModuleManifest
     {
         return ModuleManifest::make('chat')
             ->name('Chat')
