@@ -1,11 +1,13 @@
 # laravel-modules-chat
 
+[![tests](https://github.com/OzanKurt/laravel-modules-chat/actions/workflows/tests.yml/badge.svg)](https://github.com/OzanKurt/laravel-modules-chat/actions/workflows/tests.yml)
+
 Real-time **chat** module for Laravel: rooms, direct messages, threaded replies, presence, reactions, attachments, and `@mentions`. Driver-agnostic broadcasting (Laravel Reverb recommended).
 
 ## Requirements
 
-- PHP 8.4+
-- Laravel 13.x
+- PHP `^8.4`
+- Laravel `^13.0`
 - `ozankurt/laravel-modules-core` v2.x
 
 ## Installation
@@ -64,7 +66,7 @@ For tests, broadcasting is **never** booted — events are asserted via `Event::
 
 ## REST API
 
-An out-of-the-box JSON REST API built on the Core [API kit](https://github.com/OzanKurt/KurtModules-Core#api-kit). It is the **history + send + management** surface that complements real-time broadcasting - it does **not** replace it: sending a message over HTTP still dispatches `MessageSent`, so websocket clients update exactly as they do for a message sent through the domain service directly.
+An out-of-the-box JSON REST API built on the Core [API kit](https://github.com/OzanKurt/laravel-modules-core#api-kit). It is the **history + send + management** surface that complements real-time broadcasting - it does **not** replace it: sending a message over HTTP still dispatches `MessageSent`, so websocket clients update exactly as they do for a message sent through the domain service directly.
 
 **Safe by default.** Nothing is registered until you opt in. Set the mode in your app's `.env`:
 
@@ -153,6 +155,19 @@ What the resources give you:
   delete / restore / force-delete row and bulk actions for moderation.
 - **Presence** — a read-only view of the heartbeat table (user, status badge,
   status message, last heartbeat) with a status filter; no create/edit/delete.
+
+## Testing
+
+```bash
+composer install
+vendor/bin/pint --test
+vendor/bin/phpstan analyse --memory-limit=2G
+vendor/bin/pest
+```
+
+CI runs the same checks on every push and pull request
+(`.github/workflows/tests.yml`), against PHP 8.4 / Laravel 13. Static analysis
+is held at **PHPStan level 8**; the suite runs on **Pest 5**.
 
 ## License
 
